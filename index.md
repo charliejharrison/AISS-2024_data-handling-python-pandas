@@ -32,6 +32,7 @@ Today we'll build on that by looking at how to analyse and manipulate data, usin
 ## What is `pandas`?
 
 > **pandas** is a fast, powerful, flexible and easy to use open source data analysis and manipulation tool, built on top of the [Python](https://www.python.org/) programming language.
+{: .quotation}
 
 Pandas provides a set of data structures and methods that can make working with data easier - particularly data that fits in a table or matrix, like a CSV or a spreadsheet. It is, as the quote says, powerful and flexible; it is also commensurately large and complicated. We'll learn a few of the things you can do with it.
 
