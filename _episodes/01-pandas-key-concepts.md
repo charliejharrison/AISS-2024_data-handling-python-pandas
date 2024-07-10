@@ -16,6 +16,8 @@ keypoints:
 - "Elements in Series and DataFrames can be changed, but they cannot be added or removed - to do this you need to create a new Series or DataFrame. This is by design"
 ---
 
+{% include links.md %}
+
 ## Data types in `pandas`
 
 On top of all the usual Python data types, Pandas has two main data types of its own: `Series` and `DataFrame`.
