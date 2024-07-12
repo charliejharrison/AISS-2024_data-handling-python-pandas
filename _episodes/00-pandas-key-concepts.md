@@ -41,6 +41,8 @@ A `Series` is a 1-dimensional container, similar to a list, with some extra func
 
 ![A DataFrame is a 2-D labelled array](../fig/01_table_dataframe.svg)
 
+> ## Pandas has two main objects
+> 
 > - A `Series` contains 1-dimensional, labelled data - like a vector, or a column
 > - A `DataFrame` contains 2-dimensional, labelled data - like a matrix, or a table
 {: .callout}
@@ -230,6 +232,7 @@ There are lots of operators and functions that can be used to return boolean val
 - `==`: "equal to" (note the double equals symbol!)
 - `<=`: "less than or equal to"
 - `>=`: "greater than or equal to"
+- `!=`: "not equal to"
 
 You can combine criteria using logical operators with the symbols `|` for "or", `&` for "and", and `~` for "not". For example, we can get even numbers that are greater than 3 and less than 8 using:
 

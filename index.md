@@ -16,8 +16,6 @@ Yesterday you learned about:
 - flow control with `if` statements and `for` loops
 - organising your code into functions
 
-That sounds like a busy day!
-
 Today we'll build on that by looking at how to analyse and manipulate data, using a popular Python package called `pandas`. We will aim to cover:
 
 - key concepts in  `pandas`: data types, syntax and some useful basic functions
@@ -27,12 +25,13 @@ Today we'll build on that by looking at how to analyse and manipulate data, usin
 - data cleaning and manipulation
 - basic data visualisation
 
-## What is `pandas`?
+## Downloading the datasets
 
-> **pandas** is a fast, powerful, flexible and easy to use open source data analysis and manipulation tool, built on top of the [Python](https://www.python.org/) programming language.
-{: .quotation}
+You can download the datasets we'll be using in some of the coming episodes here
 
-Pandas provides a set of data structures and methods that can make working with data easier - particularly data that fits in a table or matrix, like a CSV or a spreadsheet. It is, as the quote says, powerful and flexible; it is also commensurately large and complicated. We'll learn a few of the things you can do with it.
+- Gapminder GDP data: [python-novice-gapminder-data.zip](data/python-novice-gapminder-data.zip)
+- Ask A Manager Salary Survey 2023: we recommend viewing and downloading from source on Google Docs [here](https://docs.google.com/spreadsheets/d/1ioUjhnz6ywSpEbARI-G3RoPyO0NRBqrJnWf-7C_eirs/edit?resourcekey=&gid=1854892322#gid=1854892322). If you have problems, you can find a CSV here: [salary_survey_2023.csv](data/salary_survey_2023.csv)
+
 
 > ## Prerequisites
 >
