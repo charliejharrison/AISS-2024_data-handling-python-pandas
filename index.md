@@ -4,8 +4,6 @@ root: .  # Is the only page that doesn't follow the pattern /:path/index.html
 permalink: index.html  # Is the only page that doesn't follow the pattern /:path/index.html
 ---
 
-# Introduction
-
 Welcome to the AI Summer School Day 2.
 
 Yesterday you learned about:
@@ -26,8 +24,8 @@ Today we'll build on that by looking at how to analyse and manipulate data, usin
 - reading in spreadsheets and CSVs
 - managing different types of data (categorical and continuous)
 - how to quickly calculate simple statistics
+- data cleaning and manipulation
 - basic data visualisation
-- data cleaning and basic data manipulation
 
 ## What is `pandas`?
 
