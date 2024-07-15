@@ -48,6 +48,8 @@ So the command is:
 survey_data = pd.read_csv("../data/salary_survey_2023.csv")
 ```
 
+## Get the dimensions of a DataFrame with DataFrame.shape
+
 So what are we dealing with here? Hopefully you had a browse of the data already. Let's check how many rows and columns we have:
 
 ```python
@@ -58,12 +60,19 @@ survey_data.shape
 (17164, 20)
 ```
 
-This tells us that we have a little over 17,000 rows (the responses), and 20 columns (the questions). 
+> ## DataFrame.shape is a property
+>
+> Like `DataFrame.columns`, `shape` is a property, not a method - it doesn't have brackets, and it doesn't "do" anything, it just contains information that we can read
+{: .callout}
+
+This tells us that we have 17,164 rows (the responses) and 20 columns (the questions). 
+
+## View the first few rows with DataFrame.head()
 
 We can print the first few rows using `head()` function:
 
 ```python
-survey_data.head(5)
+survey_data.head(2)
 ```
 
 ```output
@@ -104,7 +113,14 @@ survey_data.head(5)
 1  White 
 ```
 
-Let's get some information about the data set.
+> ## DataFrame.head() is a function
+> 
+> `head()` is a function, not a property. We write it with brackets, that can contain parameters, allowing us to control its behaviour. 
+{: .callout}
+
+## Get human-readable information with DataFrame.info()
+
+Let's get some more detailed, human-readable information about the data set.
 
 ```python
 survey_data.info()
@@ -140,15 +156,17 @@ dtypes: float64(1), int64(1), object(18)
 memory usage: 2.6+ MB
 ```
 
-We can see that most of the columns have dtype `object`. We'll come back to these. 
+Most of the columns have dtype `object`.  Notice that there two are columns with numeric data - `Annual salary (gross)` and `Additional monetary compensation`. But why is one of them `int64` and one of them `float64`? In the original survey form, the validation on the "Additional monetary compensation" question should have prevented any entries that weren't whole numbers. 
 
-Notive that there two are columns with numeric data - `Annual salary (gross)` and `Additional monetary compensation`. But why is one of them `int64` and one of them `float64`? In the original survey form, the validation on the "Additional monetary compensation" question should have prevented any entries that weren't whole numbers. 
+## Find the remainder with the modulo `%` operator
 
-Let's try to find which values in that columne are not integers. 
+Let's try to find which values in that column are not integers. 
 
-We could try to check the type of each element directly, but this won't work, because Pandas has created the whole column as float64. Instead we have to look at the values and find those which aren't whole numbers. We can use the "modulo" operation to get the decimal portion of a real number, using the percent `%` operator. 
+We could try to check the type of each element directly, but this won't work, because Pandas has created the whole column as float64. Instead we have to look at the values and find those which aren't whole numbers. The "modulo" operator (`%`) returns the remainder of a division - for example, `10 % 3 == 1`.
 
-Let's use that to build a mask:
+If we use 1 as the denominator, we'll get the decimal portion of a real number. 
+
+Let's use that to build a mask that looks for non-integer values:
 
 ```python
 non_int_mask = survey_data["Additional monetary compensation"] % 1 != 0
@@ -179,13 +197,343 @@ Shape: (4017,)
 Name: Additional monetary compensation, Length: 4017, dtype: float64
 ```
 
-We can see that instead of decimal numbers, we're dealing with `NaN` - missing values. What's happened here? The original CSV contains empty cells, so when pandas read in those elements it uses NaN as a placeholder. 
+We can see that instead of decimal numbers, we're dealing with `NaN` ("not a number"), which is what Pandas uses to represent a missing number. What's happened here? 
 
-- find and count NaNs
-- value_counts() to look at categorial statistics
-- summary statistics using describe
-- find range and outliers
-- find distributions for each category
+When people fill in the survey, if they have no additional monetary compensation they might mark in 0, or they leave it blank. The survey has no default value, so the blank answers produce empty cells in the CSV file. When Pandas reads in those elements it fills them in with `NaN` - it doesn't know that in our case, it's safe to assume that a missing value should be represented with a 0. And although `NaN` is explicitly not a number, its data type is `np.float64` (a floating point number), so the whole series is "cast" as `np.float64`. 
+
+## USe DataFrame.fillna() to replace missing values
+
+Knowing what we know about the logic here, we can safely replace all the `NaN` values with zeroes. The neatest way to do this is with the built-in Pandas function, `DataFrame.fillna()`. This function has lots of useful options - you can read about it in the docs pages [here](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.fillna.html). 
+
+```python
+survey_data.fillna(value={"Additional monetary compensation": 0}, inplace=True)
+```
+
+- The `value` parameter is a `dict` mapping from column names to the value we want to use in that column
+- Setting `inplace=True` tells Pandas to modify the dataframe instead of making a copy. 
+
+> ## Some methods modify the original DataFrame
+> 
+> We used `inplace=True` to change the values in the DataFrame instead of making a copy. Note that not all methods have this option. The default behaviour for most methods in Pandas is to return a new dataframe, which we can use as we please. 
+{: .callout}
+
+It's a good idea to check that this has worked as expected, by rerunning the code we used to find the `NaN` values in the first place - now we should get back an empty series instead. 
+
+## Change the data type with astype()
+
+Once we've replaced the missing values we can tell Pandas to treat the column as integers:
+
+```python
+survey_data["Additional monetary compensation"] = survey_data.loc[:, "Additional monetary compensation"].astype(int)
+```
+
+> ## Using [] to access a column
+> 
+> Note that we've directly accessed the column by its name here, using just square brackets - similarly to how we apply a mask. It's best to use `loc` to *read* columns, but this is the easiest way to "set" the values in a single column.
+{: .callout}
+
+## Create new columns with square brackets []
+
+Calculate the total compensation for each response and add it as a new column.
+
+```python
+survey_data["Total compensation"] = survey_data.loc[:, "Annual salary (gross)"] + survey_data.loc[:, "Additional monetary compensation"]
+```
+
+The `+` operation on the right of the equals sign `=` is done element-wise on the two input columns. It returns a new series, which we assign to a new column in the dataframe called "Total compensation".
+
+So far so good, but all the salaries and compensation figures are in different currencies. Let's try to convert to a single currency so we can compare responses. 
+
+## Use Series.value_counts() to count the unique values in column containing categorical data
+
+What currencies are we dealing with? 
+
+```python
+survey_data["Currency"].value_counts()
+```
+
+```output
+Currency
+USD        14318
+CAD         1099
+GBP          857
+EUR          370
+AUD/NZD      366
+Other         68
+SEK           33
+CHF           27
+JPY           13
+ZAR            8
+HKD            5
+Name: count, dtype: int64
+```
+
+The corresponding survey question had a limited selection, which is reflected in the counts we see here - free text fields tend to see a lot more variation, which is often hard to deal with! 
+
+We want to convert all the figures into the same currency so we can compare and calculate some meaningful statistics. The UK Government publishes average annual GBP exchange rates on [its website](https://www.trade-tariff.service.gov.uk/exchange_rates/average). Download a CSV for 2023 [here](https://www.trade-tariff.service.gov.uk/api/v2/exchange_rates/files/average_csv_2023-12.csv). Put the new file in your data directory and load it into a new dataframe:
+
+```python
+exchange_rates = pd.read_csv("../data/average_csv_2023-12.csv")
+```
+
+```output
+     Country    Unit Of Currency Currency Code  \
+0  Abu Dhabi              Dirham           AED   
+1    Albania                 Lek           ALL   
+2    Algeria               Dinar           DZD   
+3     Angola        Readj Kwanza           AOA   
+4    Antigua  E Caribbean Dollar           XCD   
+
+   Sterling value of Currency Unit £  Currency Units per £1  
+0                             0.2190                 4.5660  
+1                             0.0079               125.9306  
+2                             0.0059               169.2453  
+3                             0.0012               834.3142  
+4                             0.2978                 3.3578  
+```
+
+## Pick a new index columns DataFrame.set_index()
+
+How would we like to use this data? Ideally, we would use the currency code from `survey_data` to look up the sterling value of a unit, and multiply that by the figures in Total compensation. That means we want the currency code to be the *index*. Also, we can ignore the other columns and save ourselves typing in a complicated column name. Unfortunately our exchange data has some duplicates in it where multiple countries use the same currency, so we have to get rid of those too. 
+
+```python
+exch_map = exchange_rates.loc[:, ["Currency Code", "Sterling value of Currency Unit £"]]  # Copy the two colums we're interested in
+exch_map.drop_duplicates(keep='first', inplace=True)  # Get rid of duplicate rows
+exch_map.set_index("Currency Code", inplace=True) # Use the "Currency Code" column as the index
+exch_map = exch_map.iloc[:, 0]  # Take only the column at position 0 (this is also the only column)
+print(exch_map.head())
+```
+
+```output
+Currency Code
+AED    0.2190
+ALL    0.0079
+DZD    0.0059
+AOA    0.0012
+XCD    0.2978
+Name: Sterling value of Currency Unit £, dtype: float64
+```
+
+## Check if a value is in a set or list with Series.isin()
+
+Let's see which of our responses can be easily converted by comparing the values in the survey data currency column with those in our new exchange rate data. 
+
+```python
+survey_data["Currency"].isin(exch_map.index).sum()
+```
+
+```output
+np.int64(15873)
+```
+
+We did something strange here - we made a boolean array with the `isin()` function, then we added up its values to find how many `True` entries it has. This works because `True` and `False` are actually equal to 1 and 0 respectively. 
+
+> ## True == 1, False == 0
+> 
+> `True` and `False` in Python have the same value as 1 and 0. You can add up a list of boolean values to count the number of `True` elements. 
+{: .callout}
+
+So we can already convert 15873 out of 17164 rows. What about the ones we can't convert? 
+
+```python
+survey_data[~survey_data["Currency"].isin(exch_map.index)].loc[:, "Currency"].value_counts() # Remember that ~ gives us a logical "not" operation
+```
+
+```output
+Currency
+GBP        857
+AUD/NZD    366
+Other       68
+Name: count, dtype: int64
+```
+
+We have 857 rows that are already in GBP. To handle these neatly we can just add a row to our exchange data.
+
+```python
+exch_map["GBP"] = 1
+```
+
+The survey had a single category for AUD and NZD, which is a strange choice since $1 AUD is worth about 10% more. We have no way of knowing which currency the responder intended here, so we have to decide how to deal with this category. For now let's remove those responses, and accept that our survey will no longer cover Australasia. 
+
+## Drop rows with DataFrame.index and DataFrame.drop()
+
+We can find the rows we're interested in with a boolean mask:
+
+```python
+aud_nzd_data = survey_data[(survey_data["Currency"] == "AUD/NZD")]
+print(aud_nzd_data)
+```
+
+```output
+                 Timestamp How old are you?  \
+529     4/11/2023 11:13:02            35-44   
+810     4/11/2023 11:16:56            35-44   
+1270    4/11/2023 11:23:02            35-44   
+1576    4/11/2023 11:27:04            25-34   
+1872    4/11/2023 11:31:58            25-34   
+...                    ...              ...   
+16960   9/15/2023 18:51:55            35-44   
+17009   9/26/2023 19:50:07            25-34   
+17089  12/25/2023 11:54:44            18-24   
+17123    2/15/2024 4:53:09            25-34   
+17136     3/4/2024 0:03:55            18-24   
+
+                                 Industry              Functional area of job  \
+529    Government & Public Administration  Government & Public Administration   
+810                     Computing or Tech                   Computing or Tech   
+1270         Education (Higher Education)                      Administration   
+1576         Education (Higher Education)        Education (Higher Education)   
+1872         Engineering or Manufacturing        Engineering or Manufacturing   
+...                                   ...                                 ...   
+16960                         Health care                         Health care   
+17009  Government & Public Administration                                 Law   
+17089        Education (Higher Education)                               Sales   
+17123       Accounting, Banking & Finance       Accounting, Banking & Finance   
+17136              Business or Consulting              Business or Consulting   
+...
+17123  Woman                    White              92500  
+17136  Woman                      NaN              75000  
+
+[366 rows x 21 columns]
+```
+
+Here we've made a new dataframe containing only the rows where currency is "AUD/NZD". Notice the index is disjointed - the row labels in our new index correspond to the original rows labels. 
+
+Use this to drop these rows from `survey_data`:
+
+```python
+aus_rows = survey_data[(survey_data["Currency"] == "AUD/NZD")].index
+survey_data_no_aus = survey_data.drop(aus_rows)
+```
+
+Or in one line:
+
+```python
+survey_data_no_aus = survey_data.drop(survey_data[(survey_data["Currency"] == "AUD/NZD")].index)
+```
+
+## Apply an operation to each element using .map()
+
+Let's add the exchange rate data we want to use to a new column in the dataframe. 
+
+```python
+survey_data_no_aus["GBP exchange rate"] = survey_data_no_aus["Currency"].map(exch_map)
+```
+
+The `.map()` function efficiently loops through every element in a series or dataframe. We've passed in our exchange data, so map will look up each value in the Currency column against the index of our exchange data (which is the currency code), and return the value it finds (the corresponding exchange rate). We store the results in a new column, called "GBP exchange rate"
+
+Now we're down to the 68 responses with that selected "Other" as their currency, and we'll use that column to fill in the exchange rate data where we can. 
+
+There's a separate column in the dataframe for respondents to specify "Other". Let's look at the 20 most common responses:
+
+```python 
+survey_data_no_aus["Currency - other"].value_counts().head(20)
+```
+
+```output
+Currency - other
+SGD                          9
+NOK                          8
+CZK                          4
+DKK                          4
+NZD                          3
+MXN                          3
+BRL                          3
+0                            3
+PLN                          2
+HUF                          2
+INR                          2
+AUD                          2
+Danish Kroner                2
+N/a                          2
+ILS                          2
+PLN                          2
+Pension and 401k matching    1
+Chinese Renminbi             1
+BGN                          1
+HKD                          1
+Name: count, dtype: int64
+```
+
+We can see that we will quickly get down to diminishing returns, but we can try to convert some of these into useable values. 
+
+One thing to notice is that even though `value_counts()` gives counts of unique values, it looks like we have two different entries for "PLN". What's happening here? Probably a case of trailing white space - we actually have "PLN" and "PLN ". 
+
+## Remove leading and trailing whitespace characters from a string with strip()
+
+We want to clean up this "Currency - other" column. Let's create a new column to hold the cleaned data, and let's start by removing leading and trailing white space. 
+
+We have to apply a mask to ignore the `NaN` values, then we can use `map()` again, this time passing in a function to remove whitespace:
+
+```python
+curr_not_na_mask = ~survey_data_no_aus["Currency - other"].isna()
+survey_data_no_aus["Currency - cleaned"] = survey_data_no_aus["Currency - other"][curr_not_na_mask].map(str.strip)
+survey_data_no_aus["Currency - cleaned"].value_counts().head(20)
+```
+
+```output
+Currency - cleaned
+NOK                          9
+SGD                          9
+CZK                          4
+PLN                          4
+DKK                          4
+BRL                          3
+NZD                          3
+MXN                          3
+0                            3
+INR                          2
+N/a                          2
+HUF                          2
+AUD                          2
+USD                          2
+Danish Kroner                2
+ILS                          2
+variable annual bonus        1
+Quarterly bonuses            1
+Bulgarian lev                1
+Pension and 401k matching    1
+Name: count, dtype: int64
+```
+
+- That's fixed our PLN issue, and we've also found an extra NOK. 
+- We have three NZD and two AUD entries - those people decided not to accept the merged category.
+- We have two USD entries in the Other column, even though USD was available as its own category
+- Three people have responded with a 0 for some reason
+
+Let's use whatever values we can easily map from this cleaned column into the exchange rate table, and ignore the rest. 
+
+```python
+cleaned_exch_rates = survey_data_no_aus["Currency - cleaned"].map(exch_map)
+survey_data_no_aus.loc[~cleaned_exch_rates.isna(), "GBP exchange rate"] = cleaned_exch_rates 
+```
+
+This code works by:
+- Mapping the valid currency codes in "Other" into a new series - invalid ones will appear as `NaN`
+- Using the non-`NaN` values in the mapped exchange rates to make a mask on the survey dataframe's rows, and fill in the new values to the exchange rate column we created before
+
+## Multiply two columns together
+
+We can create a new column by mutliplying two existing columns together element-wise:
+
+```python
+survey_data_no_aus["GBP"] = survey_data_no_aus["Total compensation"] * survey_data_no_aus["GBP exchange rate"]
+```
+
+Now we can finally compare figures that were given in different currencies. 
+
+
+
+
+
+- [x] find and count NaNs
+- [x] create new columns - sum income, convert currency
+- [x] value_counts() to look at categorial statistics
+- [ ] summary statistics using describe
+- [ ] find range and outliers
+- [ ] find distributions for each category - groupby("years of experience").mean()
+- [ ] use `map` to execute a function on each element
+- [ ] use `apply` to execute a function on each row or column
 
 
 [^1]: [Cleaning Big Data: Most Time-Consuming, Least Enjoyable Data Science Task, Survey Says. Forbes, 2016](https://www.forbes.com/sites/gilpress/2016/03/23/data-preparation-most-time-consuming-least-enjoyable-data-science-task-survey-says/)

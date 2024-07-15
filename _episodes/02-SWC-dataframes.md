@@ -166,7 +166,7 @@ We can use slices on labels too, but the behaviour is slightly different.
 This prints the row for Albania:
 
 ```python
-print(data.loc["Albania", :])
+print(europe_gdp.loc["Albania", :])
 ```
 
 ```output
@@ -187,12 +187,12 @@ Name: Albania, dtype: float64
 
 Note that this outputs a series. 
 
-We would get the same result printing `data.loc["Albania"]` (without indexing the second dimension).
+We would get the same result printing `europe_gdp.loc["Albania"]` (without indexing the second dimension).
 
 To print a whole column, use a `:` for the first dimension (the row index). 
 
 ```python
-print(data.loc[:, "gdpPercap_1952"])
+print(europe_gdp.loc[:, "gdpPercap_1952"])
 ```
 
 ```output
@@ -207,8 +207,8 @@ United Kingdom             9979.508487
 Name: gdpPercap_1952, dtype: float64
 ```
 
-<!-- - You would get the same result printing `data["gdpPercap_1952"]` - this is not recommended, because it's more explicit and behaves more predictably. This is a confusing technical point. For now, know that it's best to use `loc`
-- You would also get the same result printing `data.gdpPercap_1952` - this is not recommended, because it's easily confused with `.` notation for methods) -->
+- You would get the same result with `europe_gdp["gdpPercap_1952"]` - this is not recommended for accessing columns, because `loc` is more explicit and behaves more predictably. This is a confusing technical point. For now, know that it's usually best to use `loc`
+- You could also get the same result with `europe_gdp.gdpPercap_1952` - this is not recommended, because it's easily confused with `.` notation for methods
 
 ## Select multiple columns or rows using `DataFrame.loc` and a named slice.
 
