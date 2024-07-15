@@ -517,10 +517,28 @@ This code works by:
 We can create a new column by mutliplying two existing columns together element-wise:
 
 ```python
-survey_data_no_aus["GBP"] = survey_data_no_aus["Total compensation"] * survey_data_no_aus["GBP exchange rate"]
+survey_data_no_aus["GBP total"] = survey_data_no_aus["Total compensation"] * survey_data_no_aus["GBP exchange rate"]
 ```
 
 Now we can finally compare figures that were given in different currencies. 
+
+## Use describe() to get summary statistics
+
+```python
+survey_data_no_aus["GBP total"] = survey_data_no_aus["Total compensation"] * survey_data_no_aus["GBP exchange rate"]
+```
+
+```output
+count    1.678400e+04
+mean     8.425093e+04
+std      7.086963e+04
+min      0.000000e+00
+25%      4.866620e+04
+50%      6.837400e+04
+75%      1.005500e+05
+max      2.413200e+06
+Name: GBP total, dtype: float64
+```
 
 
 
