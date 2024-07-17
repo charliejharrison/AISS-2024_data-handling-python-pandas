@@ -524,8 +524,10 @@ Now we can finally compare figures that were given in different currencies.
 
 ## Use describe() to get summary statistics
 
+The `Series.describe()` function prints out a collection of useful basic statistics for a single column:
+
 ```python
-survey_data_no_aus["GBP total"] = survey_data_no_aus["Total compensation"] * survey_data_no_aus["GBP exchange rate"]
+survey_data_no_aus["GBP total"].describe()
 ```
 
 ```output
@@ -540,6 +542,21 @@ max      2.413200e+06
 Name: GBP total, dtype: float64
 ```
 
+Many of these (`count`, `mean`, `std`, `min` and `max`) are available as standalone functions, and you can get the quartiles or any other percentile you want using the function `Series.quantile()`.
+
+These summary statistics give us an overview, but they don't give the full picture. What we really want is a distribution. 
+
+## Use hist() to quickly plot a distribution
+
+Pandas has quite a few basic plotting functions built in, based on a plotting library called `matplotlib` that you'll learn about in the next few days. For example, we can quickly build a histogram as follows:
+
+```python
+survey_data_no_aus["GBP total"].hist(bins=50)
+```
+
+![histogram with 50 bins](../fig/03_hist.png)
+
+The `bins` parameter sets the number of bins. The default is 10, but we have enough data to support a higher resolotion. You can also pass in a list of endpoints to fully customise how the histogram is built. 
 
 
 
@@ -547,9 +564,9 @@ Name: GBP total, dtype: float64
 - [x] find and count NaNs
 - [x] create new columns - sum income, convert currency
 - [x] value_counts() to look at categorial statistics
-- [ ] summary statistics using describe
+- [x] summary statistics using describe
 - [ ] find range and outliers
-- [ ] find distributions for each category - groupby("years of experience").mean()
+- [ ] find distributions for each category - e.g. groupby("years of experience").mean()
 - [ ] use `map` to execute a function on each element
 - [ ] use `apply` to execute a function on each row or column
 
